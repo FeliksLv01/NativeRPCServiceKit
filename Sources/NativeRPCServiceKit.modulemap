@@ -1,0 +1,6 @@
+framework module NativeRPCServiceKit {
+  umbrella header "NativeRPCServiceKit.h"
+
+  export *
+  module * { export * }
+}
