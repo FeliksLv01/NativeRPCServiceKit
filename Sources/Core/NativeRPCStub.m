@@ -11,6 +11,7 @@
 #import "NativeRPCStub.h"
 #import "NSDictionary+SafeKit.h"
 #import "NativeRPCLog.h"
+#import "NativeRPCService+Private.h"
 
 @interface NativeRPCStub ()
 @property (nonatomic, strong) NSMapTable<NSString *, NativeRPCService *> *services;
@@ -54,11 +55,10 @@
         service.stub = self;
         [_services setObject:service forKey:request.service];
     }
-
     [service receiveMessage:request];
 }
 
-- (void)sendMessage:(NativeRPCResponse *)message {
+- (void)sendMessage:(NSDictionary *)message {
     switch (self.context.connectionType) {
         case NativeRPCConnectionTypeWebView:
             [self sendMessageToWebView:message];
@@ -69,8 +69,8 @@
     }
 }
 
-- (void)sendMessageToWebView:(NativeRPCResponse *)message {
-    NSString *dataString = [[message JSONObject] jsonString];
+- (void)sendMessageToWebView:(NSDictionary *)message {
+    NSString *dataString = [message jsonString];
 #if DEBUG
     RPCLogDebug("sendMessage: %@", dataString);
 #endif

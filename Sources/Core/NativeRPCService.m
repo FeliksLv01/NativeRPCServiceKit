@@ -6,11 +6,13 @@
 //
 
 #import <objc/message.h>
+#import "NativeRPCLog.h"
 #import "NativeRPCMessage+Private.h"
+#import "NativeRPCService+Private.h"
 #import "NativeRPCService.h"
+#import "NativeRPCServiceCall+Private.h"
 #import "NativeRPCServiceCenter.h"
 #import "NativeRPCStub.h"
-#import "NativeRPCLog.h"
 
 #define weakify(var)   __weak typeof(var) weak ## var = var;
 #define strongify(var) __strong typeof(weak ## var) var = weak ## var;
@@ -35,15 +37,6 @@ static inline BOOL isEmptyString(NSString *str) {
 
 @implementation NativeRPCService
 
-+ (void)load {
-    // 确保父类不执行逻辑
-    if (self == [NativeRPCService class]) {
-        return;
-    }
-
-    [[NativeRPCServiceCenter sharedCenter] registerService:self];
-}
-
 + (NSString *)serviceName {
     NSAssert(false, @"Must override +[%@ %s]", NSStringFromClass(self), sel_getName(_cmd));
     return @"";
@@ -61,45 +54,51 @@ static inline BOOL isEmptyString(NSString *str) {
 
 - (void)receiveMessage:(NativeRPCRequest *)message {
     weakify(self);
-    [self handleMessage:message callback:^(NSDictionary *data, NativeRPCError *error) {
+    NativeRPCServiceCall *call = [NativeRPCServiceCall callFromRequest:message successHandler:^(NSDictionary * _Nonnull data) {
         strongify(self);
         NativeRPCResponse *callbackMessage = [NativeRPCResponse responseForRequest:message];
         callbackMessage.data = data;
+        [self.stub sendMessage:[callbackMessage JSONObject]];
+    } errorHandler:^(NativeRPCError * _Nonnull error) {
+        strongify(self);
+        NativeRPCResponse *callbackMessage = [NativeRPCResponse responseForRequest:message];
         callbackMessage.error = error;
-        [self.stub sendMessage:callbackMessage];
+        [self.stub sendMessage:[callbackMessage JSONObject]];
     }];
-}
 
-- (void)handleMessage:(NativeRPCRequest *)message callback:(NativeRPCServiceCallback)callback {
-    SEL sel = sel_getUid([message.method stringByAppendingString:@":callback:"].UTF8String);
+    SEL sel = sel_getUid([message.method stringByAppendingString:@":"].UTF8String);
     if (![self respondsToSelector:sel]) {
         RPCLogError("Service:%@ cannot handle method:%@", message.service, message.method);
         NSString *msg = [NSString stringWithFormat:@"Service:%@ cannot handle method:%@", message.service, message.method];
         NativeRPCError *error = [NativeRPCError errorWithCode:NativeRPCResponseCodeNotFound message:msg];
-        callback(nil, error);
+        call.errorHandler(error);
         return;
     }
 
-    ((void (*)(id, SEL, NativeRPCRequest *, NativeRPCServiceCallback))objc_msgSend)(self, sel, message, callback);
+    ((void (*)(id, SEL, NativeRPCServiceCall *))objc_msgSend)(self, sel, call);
 }
 
-RPC_EXPORT_METHOD(_addEventListener) {
-    NSString *event = message.meta.event;
+- (void)_addEventListener:(NativeRPCServiceCall *)call {
+    NSString *event = call.request.meta.event;
+
     if (isEmptyString(event)) {
-        callback(nil, [NativeRPCError invalidParamsErrorWithMessage:@"event is null"]);
+        call.errorHandler([NativeRPCError invalidParamsErrorWithMessage:@"event is null"]);
         return;
     }
-            
+
     NSInteger count = [self.events objectForKey:event].integerValue;
     [self.events setObject:@(count + 1) forKey:event];
+
     if (count == 0) {
         [self addEventListener:event];
     }
-    callback(@{}, nil);
+
+    call.successHandler(nil);
 }
 
-RPC_EXPORT_METHOD(_removeEventListener) {
-    NSString *event = message.meta.event;
+- (void)_removeEventListener:(NativeRPCServiceCall *)call {
+    NSString *event = call.request.meta.event;
+
     if (event) {
         NSInteger count = [self.events objectForKey:event].integerValue;
         [self.events setObject:@(MAX(0, count - 1)) forKey:event];
@@ -108,14 +107,17 @@ RPC_EXPORT_METHOD(_removeEventListener) {
             [self removeEventListener:event];
         }
 
-        callback(@{}, nil);
+        call.successHandler(nil);
     } else {
-        callback(nil, [NativeRPCError invalidParamsErrorWithMessage:@"event is null"]);
+        call.errorHandler([NativeRPCError invalidParamsErrorWithMessage:@"event is null"]);
     }
 }
 
-- (void)addEventListener:(NSString *)event {}
-- (void)removeEventListener:(NSString *)event {}
+- (void)addEventListener:(NSString *)event {
+}
+
+- (void)removeEventListener:(NSString *)event {
+}
 
 - (void)postEvent:(NSString *)event data:(NSDictionary *)data {
     [self postEvent:event data:data error:nil];
@@ -128,6 +130,7 @@ RPC_EXPORT_METHOD(_removeEventListener) {
 - (void)postEvent:(NSString *)event data:(NSDictionary *)data error:(NativeRPCError *)error {
     if (event) {
         NSInteger count = [self.events objectForKey:event].integerValue;
+
         if (count) {
             NativeRPCResponse *message = [NativeRPCResponse new];
             message.method = @"_event";
@@ -135,16 +138,16 @@ RPC_EXPORT_METHOD(_removeEventListener) {
             message.meta.event = event;
             message.data = data;
             message.error = error;
-            [self.stub sendMessage:message];
+            [self.stub sendMessage:[message JSONObject]];
         }
     }
 }
 
-
-- (NSMutableDictionary<NSString *,NSNumber *> *)events {
+- (NSMutableDictionary<NSString *, NSNumber *> *)events {
     if (!_events) {
         _events = [NSMutableDictionary dictionary];
     }
+
     return _events;
 }
 

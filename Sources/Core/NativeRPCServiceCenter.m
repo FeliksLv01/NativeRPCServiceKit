@@ -7,6 +7,7 @@
 
 #import "NativeRPCServiceCenter.h"
 #import "NativeRPCAppService.h"
+#import "NativeRPCService+Private.h"
 
 @interface NativeRPCServiceCenter ()
 
@@ -27,11 +28,9 @@
 }
 
 - (instancetype)init {
-    self = [super init];
-
-    if (self) {
+    if (self = [super init]) {
         _serviceMap = [NSMutableDictionary dictionaryWithDictionary:@{
-            @"app": [NativeRPCAppService class],
+            [NativeRPCAppService serviceName]: [NativeRPCAppService class],
         }];
     }
 

@@ -7,7 +7,6 @@
 
 #import <Foundation/Foundation.h>
 #import "NativeRPCContext.h"
-#import "NativeRPCMessage.h"
 
 NS_ASSUME_NONNULL_BEGIN
 // 消息收发站
@@ -15,7 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)stubWithContext:(NativeRPCContext *)context;
 
 - (void)onReceiveMessage:(NSDictionary *)message;
-- (void)sendMessage:(NativeRPCResponse *)message;
+- (void)sendMessage:(NSDictionary *)message;
 @end
 
 NS_ASSUME_NONNULL_END
