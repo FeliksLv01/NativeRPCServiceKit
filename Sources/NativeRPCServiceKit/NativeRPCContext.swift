@@ -17,11 +17,11 @@ public enum NativeRPCConnectionType: UInt {
 public struct NativeRPCConnectionTypeOptions: OptionSet {
     public let rawValue: UInt
 
-    static let webView = Self(rawValue: 1 << 1)
-    static let jsCore = Self(rawValue: 1 << 2)
-    static let webSocket = Self(rawValue: 1 << 3)
+    public static let webView = Self(rawValue: 1 << 1)
+    public static let jsCore = Self(rawValue: 1 << 2)
+    public static let webSocket = Self(rawValue: 1 << 3)
 
-    static let all: Self = [.webView, .jsCore, .webSocket]
+    public static let all: Self = [.webView, .jsCore, .webSocket]
 
     public init(rawValue: UInt) {
         self.rawValue = rawValue
