@@ -7,7 +7,6 @@
 
 import Foundation
 import WebKit
-import CocoaLumberjackSwift
 
 public class NativeRPCWebViewConnection: NativeRPCConnection {
     public convenience init(webView: WKWebView, rootViewController: UIViewController?) {
@@ -23,7 +22,7 @@ public class NativeRPCWebViewConnection: NativeRPCConnection {
         let jsCode = "window.rpcClient.onReceive(\(jsonString))"
         webView.evaluateJavaScript(jsCode) { data, error in
             if let error = error {
-                DDLogError("[RPC]: WebView onReceive Message Error \(error.localizedDescription)")
+                RPCLog.error("[RPC]: WebView onReceive Message Error %@", error.localizedDescription)
             }
         }
     }

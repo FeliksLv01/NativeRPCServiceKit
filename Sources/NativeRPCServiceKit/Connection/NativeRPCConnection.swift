@@ -6,58 +6,49 @@
 //
 
 import Foundation
-import CocoaLumberjackSwift
 
 /// Native RPC 连接，连接是复用的，一次连接可以传输多个数据
 open class NativeRPCConnection: NativeRPCStubDelegate {
     public let context: NativeRPCContext
     private var stub: NativeRPCStub?
     
-    public var enableLog: Bool = false
-    
     public init(context: NativeRPCContext) {
         self.context = context
     }
     
     public func start() {
-        if enableLog {
-            DDLogInfo("[RPC]: Connection Start")
-        }
         stub = NativeRPCStub(context: context)
         stub?.delegate = self
+        RPCLog.debug("[RPC]: Connection Start")
     }
     
     public func close() {
-        if enableLog {
-            DDLogInfo("[RPC]: Connection Close")
-        }
         stub?.delegate = nil
         stub = nil
+        RPCLog.debug("[RPC]: Connection Close")
     }
     
     public func onReceiveMessage(_ message: [String: Any]) {
         guard let request = NativeRPCRequest(from: message) else {
-            DDLogError("[RPC]: invalid message: \(message)")
+            RPCLog.error("[RPC]: invalid message: %@", message)
             return
         }
-        
-        if enableLog {
-            DDLogInfo("[RPC]: receive => \(message)")
-        }
+#if DEBUG
+        RPCLog.debug("[RPC]: receive => %@", message)
+#endif
 
         do {
             try stub?.onReceiveMessage(request)
         } catch {
             let response = NativeRPCResponse(for: request, error: NativeRPCError.from(error))
             sendMessage(response.jsonObject)
-            
-            DDLogError("[RPC]: Error \(response.jsonObject.jsonString ?? "response to json failed")")
+            RPCLog.error("[RPC]: Error %@", response.jsonObject.jsonString ?? "response to json failed")
         }
     }
     
     public func sendMessage(_ message: [String: Any]) {
-        if enableLog {
-            DDLogInfo("[RPC]: send => \(message)")
-        }
+#if DEBUG
+        RPCLog.debug("[RPC]: send => %@", message)
+#endif
     }
 }

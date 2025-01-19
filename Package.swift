@@ -12,14 +12,9 @@ let package = Package(
             name: "NativeRPCServiceKit",
             targets: ["NativeRPCServiceKit"]),
     ],
-    dependencies: [
-        .package(url: "https://github.com/CocoaLumberjack/CocoaLumberjack.git", from: "3.8.0"),
-    ],
+    dependencies: [],
     targets: [
-        .target(
-            name: "NativeRPCServiceKit",
-            dependencies: [.product(name: "CocoaLumberjackSwift", package: "CocoaLumberjack")]
-        ),
+        .target(name: "NativeRPCServiceKit"),
         .testTarget(
             name: "NativeRPCServiceKitTests",
             dependencies: ["NativeRPCServiceKit"]
