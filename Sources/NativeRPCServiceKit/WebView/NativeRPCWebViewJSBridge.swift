@@ -12,7 +12,7 @@ open class NativeRPCWebViewJSBridge: NSObject, WKScriptMessageHandler {
     private let connection: NativeRPCConnection
 
     private let handlerName = "bridge"
-    public init(webView: WKWebView, viewController: UIViewController?) {
+    public init(webView: WKWebView, viewController: NativeViewController?) {
         connection = NativeRPCWebViewConnection(
             webView: webView, rootViewController: viewController)
         super.init()

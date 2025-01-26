@@ -31,12 +31,14 @@ public struct NativeRPCMethodMacro: PeerMacro {
 
         let parameters = methodDecl.signature.parameterClause.parameters
         let returnType = methodDecl.signature.returnClause?.type.description ?? "Void"
+        
+        let isThrowing = methodDecl.signature.effectSpecifiers?.throwsSpecifier != nil
 
         // 生成 NativeRPCServiceCall 兼容方法
         let generatedMethod = """
         public func \(generatedMethodName)(_ call: NativeRPCServiceCall) {
             let rpcCallParams = call.params ?? [:]
-            \(generateMethodCall(methodName: methodDecl.name.text, parameters: parameters, returnType: returnType))
+            \(generateMethodCall(methodName: methodDecl.name.text, parameters: parameters, returnType: returnType, isThrowing: isThrowing))
         }
         """
 
@@ -44,7 +46,7 @@ public struct NativeRPCMethodMacro: PeerMacro {
     }
 
     /// 生成方法调用的代码片段。
-    private static func generateMethodCall(methodName: String, parameters: FunctionParameterListSyntax, returnType: String) -> String {
+    private static func generateMethodCall(methodName: String, parameters: FunctionParameterListSyntax, returnType: String, isThrowing: Bool) -> String {
         var callParams = [String]()
         for param in parameters {
             // 处理匿名参数名（例如 `post(_ name: String)`）
@@ -81,19 +83,44 @@ public struct NativeRPCMethodMacro: PeerMacro {
         
         // 生成方法调用
         if returnType == "Void" {
-            let methodCall = "self.\(methodName)(\(methodCallParamsStr))"
+            var methodCall = "self.\(methodName)(\(methodCallParamsStr))"
+            
+            if isThrowing {
+                methodCall = "try \(methodCall)"
+            }
+            
             return """
-            \(callParams.joined(separator: "\n"))
-            \(methodCall)
-            call.resolve()
+            do {
+                \(callParams.joined(separator: "\n"))
+                \(methodCall)
+                call.resolve()
+            } catch {
+                if let error = error as? NativeRPCError {
+                    call.reject(error)
+                } else {
+                    call.reject(NativeRPCError.userDefined(error.localizedDescription))
+                }
+            }
             """
         }
         
-        let methodCall = "let rpcMethodResult = self.\(methodName)(\(methodCallParamsStr))"
+        var methodCall = "let rpcMethodResult = self.\(methodName)(\(methodCallParamsStr))"
+        
+        if isThrowing {
+            methodCall = "let rpcMethodResult = try self.\(methodName)(\(methodCallParamsStr))"
+        }
         return """
-        \(callParams.joined(separator: "\n"))
-        \(methodCall)
-        call.resolve(["result": rpcMethodResult])
-        """
+            do {
+                \(callParams.joined(separator: "\n"))
+                \(methodCall)
+                call.resolve(["result": rpcMethodResult])
+            } catch {
+                if let error = error as? NativeRPCError {
+                    call.reject(error)
+                } else {
+                    call.reject(NativeRPCError.userDefined(error.localizedDescription))
+                }
+            }
+            """
     }
 }
