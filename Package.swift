@@ -1,20 +1,31 @@
-// swift-tools-version: 5.4
+// swift-tools-version: 5.9
 
+import CompilerPluginSupport
 import PackageDescription
 
 let package = Package(
     name: "NativeRPCServiceKit",
     platforms: [
-        .iOS(.v12)
+        .macOS(.v10_15), .iOS(.v13), .macCatalyst(.v13),
     ],
     products: [
         .library(
             name: "NativeRPCServiceKit",
-            targets: ["NativeRPCServiceKit"]),
+            targets: ["NativeRPCServiceKit"]
+        )
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "600.0.0-latest")
+    ],
     targets: [
-        .target(name: "NativeRPCServiceKit"),
+        .target(name: "NativeRPCServiceKit", dependencies: ["NativeRPCServiceMacrosPlugin"]),
+        .macro(
+            name: "NativeRPCServiceMacrosPlugin",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+            ]
+        ),
         .testTarget(
             name: "NativeRPCServiceKitTests",
             dependencies: ["NativeRPCServiceKit"]

@@ -2,12 +2,16 @@ import Testing
 @testable import NativeRPCServiceKit
 import Foundation
 
-class NativeRPCAppService: NSObject, NativeRPCService {
-    static var name: String = "app"
+@NativeRPCService("app")
+class NativeRPCAppService {
     
-    static var supportedConnectionType: NativeRPCConnectionTypeOptions = .all
+    @NativeRPCMethod
+    func demo(name: String) -> String {
+        print(name)
+        return name
+    }
     
-    @objc
+    @NativeRPCMethodExport
     func test(_ call: NativeRPCServiceCall) {
         print(call.context.connectionType)
         call.resolve()
@@ -22,12 +26,13 @@ class NativeRPCAppService: NSObject, NativeRPCService {
     
     connection.onReceiveMessage([
         "service": "app",
-        "method": "test",
+        "method": "demo",
         "_meta": [
             "callbackId": 111
         ],
         "params": [
-            "test": "123"
+            "test": "123",
+            "name": "FeliksLv"
         ]
     ])
 }

@@ -32,7 +32,7 @@ final class NativeRPCStub {
             throw NativeRPCError.connectionTypeNotSupported
         }
         let service = services[serviceName]
-        let serviceInstance = service ?? serviceType.init()
+        let serviceInstance = service ?? serviceType.createService()
         if service == nil {
             services[serviceName] = serviceInstance
         }
@@ -53,8 +53,7 @@ final class NativeRPCStub {
         }
         
         // 普通方法调用
-        let selector = Selector("\(request.method):")
-        guard service.responds(to: selector) else {
+        guard service.canHandleMethod(request.method) else {
             throw NativeRPCError.methodNotFound
         }
         
@@ -69,7 +68,17 @@ final class NativeRPCStub {
             }
             sendMessage(response)
         }
-        service.perform(selector, with: call)
+        do {
+            try service.dynamicallyCall(withKeywordArguments: [request.method: call])
+        } catch {
+            if let error = error as? NativeRPCError {
+                call.reject(error)
+                return
+            }
+            call.reject(NativeRPCError.userDefined(error.localizedDescription))
+            return
+        }
+        
     }
     
     private func registerNotification() {

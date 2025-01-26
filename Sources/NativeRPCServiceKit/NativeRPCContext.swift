@@ -5,7 +5,17 @@
 //  Created by FeliksLv on 2025/1/11.
 //
 
+import Foundation
+
+#if os(iOS)
 import UIKit
+public typealias NativeView = UIView
+public typealias NativeViewController = UIViewController
+#elseif os(macOS)
+import AppKit
+public typealias NativeView = NSView
+public typealias NativeViewController = NSViewController
+#endif
 
 public enum NativeRPCConnectionType: UInt {
     case none = 0
@@ -45,10 +55,10 @@ public struct NativeRPCConnectionTypeOptions: OptionSet {
 public final class NativeRPCContext: NSObject {
     public let connectionType: NativeRPCConnectionType
 
-    public private(set) weak var rootView: UIView?
-    public private(set) weak var rootViewController: UIViewController?
+    public private(set) weak var rootView: NativeView?
+    public private(set) weak var rootViewController: NativeViewController?
 
-    public init(connectionType: NativeRPCConnectionType, rootView: UIView? = nil, rootViewController: UIViewController? = nil) {
+    public init(connectionType: NativeRPCConnectionType, rootView: NativeView? = nil, rootViewController: NativeViewController? = nil) {
         self.connectionType = connectionType
         self.rootView = rootView
     }

@@ -9,7 +9,7 @@ import Foundation
 import WebKit
 
 public class NativeRPCWebViewConnection: NativeRPCConnection {
-    public convenience init(webView: WKWebView, rootViewController: UIViewController?) {
+    public convenience init(webView: WKWebView, rootViewController: NativeViewController?) {
         self.init(context: .init(connectionType: .webView, rootView: webView, rootViewController: rootViewController))
     }
     
