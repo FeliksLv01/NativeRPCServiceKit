@@ -25,5 +25,6 @@ public class NativeRPCWebViewConnection: NativeRPCConnection {
                 RPCLog.error("[RPC]: WebView onReceive Message Error %@", error.localizedDescription)
             }
         }
+        super.sendMessage(message)
     }
 }

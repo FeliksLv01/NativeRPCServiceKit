@@ -64,8 +64,8 @@ public struct NativeRPCMethodMacro: PeerMacro {
                 let paramValue = "rpcCallParams[\"\(paramName)\"] as? \(paramType)"
                 callParams.append("""
                 guard let \(paramName) = \(paramValue) else {
-                \tcall.reject(NativeRPCError.invalidParams("\(paramName) is missing or invalid"))
-                \treturn
+                        call.reject(NativeRPCError.invalidParams("\(paramName) is missing or invalid"))
+                        return
                 }
                 """)
             }
@@ -113,13 +113,13 @@ public struct NativeRPCMethodMacro: PeerMacro {
             do {
                 \(callParams.joined(separator: "\n"))
                 \(methodCall)
-                call.resolve(["result": rpcMethodResult])
+                    call.resolve(["result": rpcMethodResult])
             } catch {
-                if let error = error as? NativeRPCError {
-                    call.reject(error)
-                } else {
-                    call.reject(NativeRPCError.userDefined(error.localizedDescription))
-                }
+                    if let error = error as? NativeRPCError {
+                        call.reject(error)
+                    } else {
+                        call.reject(NativeRPCError.userDefined(error.localizedDescription))
+                    }
             }
             """
     }

@@ -8,8 +8,8 @@
 import Foundation
 
 public final class NativeRPCServiceCenter {
-    public static let shared = NativeRPCServiceCenter()
-    
+    private static let shared = NativeRPCServiceCenter()
+
     private var serviceMap: [String: NativeRPCService.Type] = [
         NativeRPCEventService.name: NativeRPCEventService.self
     ]
