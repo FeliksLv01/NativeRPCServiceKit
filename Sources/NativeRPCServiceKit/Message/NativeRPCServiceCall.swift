@@ -10,9 +10,8 @@ import Foundation
 public typealias NativeRPCResponseData = [String: Any]
 public typealias NativeRPCServiceCallCompletion = (Result<NativeRPCResponseData?, NativeRPCError>) -> Void
 
-@objc
-public class NativeRPCServiceCall: NSObject {
-    let completion: NativeRPCServiceCallCompletion
+public struct NativeRPCServiceCall {
+    private let completion: NativeRPCServiceCallCompletion
     public let params: [String: Any]?
     public let context: NativeRPCContext
 

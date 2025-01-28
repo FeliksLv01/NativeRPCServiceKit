@@ -9,7 +9,7 @@
 /// source code that generated the value. For example,
 ///
 /// @NativeRPCService("my", options: .all)
-/// class MyService: NSObject {}
+/// class MyService {}
 ///
 /// expand
 ///

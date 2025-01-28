@@ -15,15 +15,14 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "600.0.0-latest")
+        .package(url: "https://github.com/sjavora/swift-syntax-xcframeworks.git", from: "600.0.1-latest")
     ],
     targets: [
         .target(name: "NativeRPCServiceKit", dependencies: ["NativeRPCServiceMacrosPlugin"]),
         .macro(
             name: "NativeRPCServiceMacrosPlugin",
             dependencies: [
-                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
-                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+                .product(name: "SwiftSyntaxWrapper", package: "swift-syntax-xcframeworks")
             ]
         ),
         .testTarget(

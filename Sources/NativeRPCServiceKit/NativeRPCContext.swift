@@ -51,10 +51,8 @@ public struct NativeRPCConnectionTypeOptions: OptionSet {
     }
 }
 
-@objc
-public final class NativeRPCContext: NSObject {
+public final class NativeRPCContext {
     public let connectionType: NativeRPCConnectionType
-
     public private(set) weak var rootView: NativeView?
     public private(set) weak var rootViewController: NativeViewController?
 

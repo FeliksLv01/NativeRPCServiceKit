@@ -16,6 +16,7 @@ public class NativeRPCWebViewConnection: NativeRPCConnection {
     public override func sendMessage(_ message: [String : Any]) {
         guard let webView = self.context.rootView as? WKWebView,
               let jsonString = message.jsonString else {
+            RPCLog.error("[RPC]: message send Error: %@", message)
             return
         }
         

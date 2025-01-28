@@ -15,10 +15,7 @@ class NativeRPCResponse: NativeRPCMessage {
     }
     
     var jsonObject: NativeRPCResponseData {
-        var json: [String: Any] = [
-            "service": service,
-            "method": method
-        ]
+        var json: [String: Any] = [:]
         var meta: [String: Any] = [:]
         
         if let callbackId = callbackId {

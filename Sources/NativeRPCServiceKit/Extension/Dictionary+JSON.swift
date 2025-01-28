@@ -9,8 +9,7 @@ import Foundation
 
 extension Dictionary {
     var jsonString: String? {
-        guard JSONSerialization.isValidJSONObject(self),
-              let jsonData = try? JSONSerialization.data(withJSONObject: self) else {
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: self) else {
             return nil
         }
         return String(data: jsonData, encoding: .utf8)
