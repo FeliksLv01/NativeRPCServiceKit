@@ -71,6 +71,12 @@ class ViewController: UIViewController {
     lazy var bridge: NativeRPCWebViewJSBridge = {
         return NativeRPCWebViewJSBridge(webView: webView, viewController: self)
     }()
+
+    deinit {
+        // Close the connection when the view controller is deinitialized
+        bridge.closeConnection()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Register your service

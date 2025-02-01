@@ -13,7 +13,7 @@ protocol NativeRPCStubDelegate: AnyObject {
 
 /// 消息收发站
 final class NativeRPCStub {
-    private let context: NativeRPCContext
+    private weak var context: NativeRPCContext?
     private var services: [String: NativeRPCService] = [:]
     private var events: [String: Int] = [:]
         
@@ -28,7 +28,7 @@ final class NativeRPCStub {
         guard let serviceType = NativeRPCServiceCenter.serviceType(named: serviceName) else {
             throw NativeRPCError.serviceNotFound
         }
-        guard serviceType.supportedConnectionType.supports(context.connectionType) else {
+        guard let context = context, serviceType.supportedConnectionType.supports(context.connectionType) else {
             throw NativeRPCError.connectionTypeNotSupported
         }
         let service = services[serviceName]
@@ -53,7 +53,7 @@ final class NativeRPCStub {
         }
         
         // 普通方法调用
-        guard service.canHandleMethod(request.method) else {
+        guard let context = context, service.canHandleMethod(request.method) else {
             throw NativeRPCError.methodNotFound
         }
         

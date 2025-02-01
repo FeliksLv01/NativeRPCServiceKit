@@ -7,7 +7,6 @@
 
 import WebKit
 
-@MainActor
 open class NativeRPCWebViewJSBridge: NSObject, WKScriptMessageHandler {
     private let connection: NativeRPCConnection
 
@@ -16,12 +15,23 @@ open class NativeRPCWebViewJSBridge: NSObject, WKScriptMessageHandler {
         connection = NativeRPCWebViewConnection(
             webView: webView, rootViewController: viewController)
         super.init()
-        webView.configuration.userContentController.removeScriptMessageHandler(forName: handlerName)
-        webView.configuration.userContentController.add(self, name: handlerName)
     }
 
     open func startConnection() {
+        guard let webView = connection.context.rootView as? WKWebView else {
+            return
+        }
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: handlerName)
+        webView.configuration.userContentController.add(self, name: handlerName)
         connection.start()
+    }
+    
+    open func closeConnection() {
+        guard let webView = connection.context.rootView as? WKWebView else {
+            return
+        }
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: handlerName)
+        connection.close()
     }
 
     open func userContentController(
