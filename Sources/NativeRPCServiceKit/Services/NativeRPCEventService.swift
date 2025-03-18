@@ -21,7 +21,7 @@ class NativeRPCEventService: NativeRPCService {
         }
     }
 
-    static func createService() -> any NativeRPCService {
+    static func createService(from context: NativeRPCContext) -> any NativeRPCService {
         return NativeRPCEventService()
     }
 

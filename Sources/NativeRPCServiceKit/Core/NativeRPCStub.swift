@@ -32,7 +32,7 @@ final class NativeRPCStub {
             throw NativeRPCError.connectionTypeNotSupported
         }
         let service = services[serviceName]
-        let serviceInstance = service ?? serviceType.createService()
+        let serviceInstance = service ?? serviceType.createService(from: context)
         if service == nil {
             services[serviceName] = serviceInstance
         }
