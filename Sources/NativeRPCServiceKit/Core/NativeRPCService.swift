@@ -10,10 +10,10 @@ public protocol NativeRPCService: AnyObject {
     static var name: String { get }
     static var supportedConnectionType: NativeRPCConnectionTypeOptions { get }
     
-    static func createService() -> NativeRPCService
+    static func createService() -> any NativeRPCService
     
-    func canHandleMethod(_ method: String) -> Bool
-    func dynamicallyCall(withKeywordArguments args: KeyValuePairs<String, NativeRPCServiceCall>) throws -> Void
+    associatedtype RPCMethod: RawRepresentable where RPCMethod.RawValue == String
+    func perform(_ method: RPCMethod, with call: NativeRPCMethodCall) throws
 
     func addEventListener(_ event: String)
     func removeEventListener(_ event: String)
@@ -21,6 +21,8 @@ public protocol NativeRPCService: AnyObject {
 }
 
 public extension NativeRPCService {
+    static var supportedConnectionType: NativeRPCConnectionTypeOptions { .all }
+
     var name: String {
         return Self.name
     }
@@ -28,13 +30,7 @@ public extension NativeRPCService {
     var supportedConnectionType: NativeRPCConnectionTypeOptions {
         return Self.supportedConnectionType
     }
-    
-    func canHandleMethod(_ method: String) -> Bool {
-        return false
-    }
-    
-    func dynamicallyCall(withKeywordArguments args: KeyValuePairs<String, NativeRPCServiceCall>) throws -> Void {}
-    
+        
     func addEventListener(_ event: String) {}
     func removeEventListener(_ event: String) {}
     

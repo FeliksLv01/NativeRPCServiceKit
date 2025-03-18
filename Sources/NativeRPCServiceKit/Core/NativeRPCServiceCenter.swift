@@ -10,7 +10,7 @@ import Foundation
 public final class NativeRPCServiceCenter {
     private static let shared = NativeRPCServiceCenter()
 
-    private var serviceMap: [String: NativeRPCService.Type] = [
+    private var serviceMap: [String: any NativeRPCService.Type] = [
         NativeRPCEventService.name: NativeRPCEventService.self
     ]
     
@@ -20,7 +20,7 @@ public final class NativeRPCServiceCenter {
         serviceMap[T.name] = service
     }
 
-    private func serviceType(named serviceName: String) -> NativeRPCService.Type? {
+    private func serviceType(named serviceName: String) -> (any NativeRPCService.Type)? {
         return serviceMap[serviceName]
     }
 
@@ -28,7 +28,7 @@ public final class NativeRPCServiceCenter {
         shared.registerService(service)
     }
 
-    static func serviceType(named serviceName: String) -> NativeRPCService.Type? {
+    static func serviceType(named serviceName: String) -> (any NativeRPCService.Type)? {
         return shared.serviceType(named: serviceName)
     }
 }

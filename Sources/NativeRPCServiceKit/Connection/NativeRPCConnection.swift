@@ -33,10 +33,7 @@ open class NativeRPCConnection: NativeRPCStubDelegate {
             RPCLog.error("[RPC]: invalid message: %@", message)
             return
         }
-#if DEBUG
         RPCLog.debug("[RPC]: receive => %@", message)
-#endif
-
         do {
             try stub?.onReceiveMessage(request)
         } catch {
@@ -47,8 +44,6 @@ open class NativeRPCConnection: NativeRPCStubDelegate {
     }
     
     public func sendMessage(_ message: [String: Any]) {
-#if DEBUG
         RPCLog.debug("[RPC]: send => %@", message)
-#endif
     }
 }

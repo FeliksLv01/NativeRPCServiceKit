@@ -16,9 +16,9 @@ enum RPCLog {
         os_log(.info, log: .rpcLogger, message, args)
     }
 
-    static func debug(_ message: StaticString, _ args: any CVarArg...) {
+    static func debug(_ message: @autoclosure () -> StaticString, _ args: any CVarArg...) {
 #if DEBUG
-        os_log(.debug, log: .rpcLogger, message, args)
+        os_log(.debug, log: .rpcLogger, message(), args)
 #endif
     }
 
