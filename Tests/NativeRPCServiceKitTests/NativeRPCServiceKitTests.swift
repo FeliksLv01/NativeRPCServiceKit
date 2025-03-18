@@ -1,20 +1,54 @@
-import Testing
-@testable import NativeRPCServiceKit
 import Foundation
+@testable import NativeRPCServiceKit
+import Testing
 
-@NativeRPCService("app")
 class NativeRPCAppService {
-    
-    @NativeRPCMethod
-    func demo(name: String) -> String {
+    public func demo(_ call: NativeRPCServiceCall) {
+        let rpcCallParams = call.params ?? [:]
+        guard let name = rpcCallParams["name"] as? String else {
+            call.reject(NativeRPCError.invalidParams("name is missing or invalid"))
+            return
+        }
         print(name)
-        return name
+        call.resolve(["result": name])
     }
-    
-    @NativeRPCMethodExport
+
     func test(_ call: NativeRPCServiceCall) {
         print(call.context.connectionType)
         call.resolve()
+    }
+}
+
+extension NativeRPCAppService: NativeRPCService {
+    static var name: String = "app"
+    static var supportedConnectionType: NativeRPCConnectionTypeOptions = .all
+    public func canHandleMethod(_ method: String) -> Bool {
+        switch method {
+        case "test":
+            return true
+        default:
+            return false
+        }
+    }
+
+    public func dynamicallyCall(withKeywordArguments args: KeyValuePairs<String, NativeRPCServiceCall>) throws {
+        guard let method = args.first?.key else {
+            throw NativeRPCError.methodNotFound
+        }
+        guard let call = args.first?.value as? NativeRPCServiceCall else {
+            throw NativeRPCError.invalidParams("Error: Invalid call object")
+        }
+
+        switch method {
+        case "test":
+            self.test(call)
+        default:
+            throw NativeRPCError.methodNotFound
+        }
+    }
+
+    static func createService() -> NativeRPCService {
+        return NativeRPCAppService()
     }
 }
 
@@ -23,7 +57,7 @@ class NativeRPCAppService {
     NativeRPCServiceCenter.registerService(NativeRPCAppService.self)
     let connection = NativeRPCConnection(context: .init(connectionType: .webSocket))
     connection.start()
-    
+
     connection.onReceiveMessage([
         "service": "app",
         "method": "demo",

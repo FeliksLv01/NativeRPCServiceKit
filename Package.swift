@@ -14,17 +14,9 @@ let package = Package(
             targets: ["NativeRPCServiceKit"]
         )
     ],
-    dependencies: [
-        .package(url: "https://github.com/sjavora/swift-syntax-xcframeworks.git", from: "600.0.1-latest")
-    ],
+    dependencies: [],
     targets: [
-        .target(name: "NativeRPCServiceKit", dependencies: ["NativeRPCServiceMacrosPlugin"]),
-        .macro(
-            name: "NativeRPCServiceMacrosPlugin",
-            dependencies: [
-                .product(name: "SwiftSyntaxWrapper", package: "swift-syntax-xcframeworks")
-            ]
-        ),
+        .target(name: "NativeRPCServiceKit"),
         .testTarget(
             name: "NativeRPCServiceKitTests",
             dependencies: ["NativeRPCServiceKit"]

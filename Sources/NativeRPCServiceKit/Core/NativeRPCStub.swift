@@ -14,7 +14,7 @@ protocol NativeRPCStubDelegate: AnyObject {
 /// 消息收发站
 final class NativeRPCStub {
     private weak var context: NativeRPCContext?
-    private var services: [String: NativeRPCService] = [:]
+    private var services: [String: any NativeRPCService] = [:]
     private var events: [String: Int] = [:]
         
     weak var delegate: NativeRPCStubDelegate?
@@ -24,7 +24,7 @@ final class NativeRPCStub {
         registerNotification()
     }
     
-    func service(named serviceName: String) throws -> NativeRPCService {
+    func service(named serviceName: String) throws -> any NativeRPCService {
         guard let serviceType = NativeRPCServiceCenter.serviceType(named: serviceName) else {
             throw NativeRPCError.serviceNotFound
         }
@@ -52,12 +52,14 @@ final class NativeRPCStub {
             return
         }
         
+        let rpcService = AnyNativeRPCService(service)
+        
         // 普通方法调用
-        guard let context = context, service.canHandleMethod(request.method) else {
+        guard let context = context, rpcService.canHandleMethod(request.method) else {
             throw NativeRPCError.methodNotFound
         }
         
-        let call = NativeRPCServiceCall(context: context, params: request.params) { [weak self] result in
+        let call = NativeRPCMethodCall(context: context, params: request.params) { [weak self] result in
             guard let self = self else { return }
             let response = NativeRPCResponse(for: request)
             switch result {
@@ -69,7 +71,7 @@ final class NativeRPCStub {
             sendMessage(response)
         }
         do {
-            try service.dynamicallyCall(withKeywordArguments: [request.method: call])
+            try rpcService.perform(request.method, with: call)
         } catch {
             if let error = error as? NativeRPCError {
                 call.reject(error)
@@ -78,13 +80,12 @@ final class NativeRPCStub {
             call.reject(NativeRPCError.userDefined(error.localizedDescription))
             return
         }
-        
     }
     
     private func registerNotification() {
         NotificationCenter.nativeRPC.addObserver(forName: .serviceDidPostEvent, object: nil, queue: .main) { [weak self] notification in
             guard let self = self else { return }
-            guard let service = notification.object as? NativeRPCService,
+            guard let service = notification.object as? (any NativeRPCService),
                   let userInfo = notification.userInfo,
                   let event = userInfo["event"] as? String,
                   let count = events["\(service.name).\(event)"],
@@ -103,7 +104,7 @@ final class NativeRPCStub {
         }
     }
 
-    private func addEventListener(from request: NativeRPCRequest, to service: NativeRPCService) {
+    private func addEventListener(from request: NativeRPCRequest, to service: any NativeRPCService) {
         guard let event = request.event else {
             sendMessage(.init(for: request, error: .invalidMessage))
             return
@@ -117,7 +118,7 @@ final class NativeRPCStub {
         sendMessage(.init(for: request))
     }
     
-    private func removeEventListener(from request: NativeRPCRequest, to service: NativeRPCService) {
+    private func removeEventListener(from request: NativeRPCRequest, to service: any NativeRPCService) {
         guard let event = request.event else {
             sendMessage(.init(for: request, error: .invalidMessage))
             return
