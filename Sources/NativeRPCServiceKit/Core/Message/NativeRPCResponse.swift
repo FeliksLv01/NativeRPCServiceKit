@@ -11,6 +11,7 @@ class NativeRPCResponse: NativeRPCMessage {
     
     convenience init(for request: NativeRPCRequest, data: NativeRPCResponseData? = nil, error: NativeRPCError? = nil) {
         self.init(service: request.service, method: request.method, callbackId: request.callbackId, event: request.event)
+        self.data = data
         self.error = error
     }
     

@@ -13,7 +13,7 @@ public class NativeRPCWebViewConnection: NativeRPCConnection {
         self.init(context: .init(connectionType: .webView, rootView: webView, rootViewController: rootViewController))
     }
     
-    public override func sendMessage(_ message: [String : Any]) {
+    public override func sendMessage(_ message: [String : Any]) async {
         guard let webView = self.context.rootView as? WKWebView,
               let jsonString = message.jsonString else {
             RPCLog.error("[RPC]: message send Error: %@", message)
@@ -21,11 +21,14 @@ public class NativeRPCWebViewConnection: NativeRPCConnection {
         }
         
         let jsCode = "window.rpcClient.onReceive(\(jsonString))"
-        webView.evaluateJavaScript(jsCode) { data, error in
-            if let error = error {
-                RPCLog.error("[RPC]: WebView onReceive Message Error %@", error.localizedDescription)
+        
+        await MainActor.run {
+            webView.evaluateJavaScript(jsCode) { data, error in
+                if let error = error {
+                    RPCLog.error("[RPC]: WebView onReceive Message Error %@", error.localizedDescription)
+                }
             }
         }
-        super.sendMessage(message)
+        await super.sendMessage(message)
     }
 }

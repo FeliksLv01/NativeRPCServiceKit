@@ -8,7 +8,7 @@
 import Foundation
 
 protocol NativeRPCStubDelegate: AnyObject {
-    func sendMessage(_ message: [String: Any])
+    func sendMessage(_ message: [String: Any]) async
 }
 
 /// 消息收发站
@@ -134,6 +134,9 @@ final class NativeRPCStub {
     }
 
     private func sendMessage(_ message: NativeRPCResponse) {
-        delegate?.sendMessage(message.jsonObject)
+        Task { [weak self] in
+            guard let self else { return }
+            await delegate?.sendMessage(message.jsonObject)
+        }
     }
 }
