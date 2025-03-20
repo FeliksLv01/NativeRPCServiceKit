@@ -10,7 +10,7 @@ public protocol NativeRPCService: AnyObject {
     static var name: String { get }
     static var supportedConnectionType: NativeRPCConnectionTypeOptions { get }
     
-    static func createService(from context: NativeRPCContext) -> any NativeRPCService
+    init(from context: NativeRPCContext)
     
     associatedtype RPCMethod: RawRepresentable where RPCMethod.RawValue == String
     func perform(with call: NativeRPCMethodCall<RPCMethod>) async throws -> NativeRPCResponseData?
