@@ -13,12 +13,13 @@ class NativeRPCEventService: NativeRPCService {
     enum RPCMethod: String {
         case post
     }
-
-    public func perform(_ method: RPCMethod, with call: NativeRPCMethodCall) throws {
-        switch method {
+    
+    func perform(with call: NativeRPCMethodCall<RPCMethod>) async throws -> NativeRPCResponseData? {
+        switch call.method {
         case .post:
-            post(call)
+            try post(call)
         }
+        return nil
     }
 
     static func createService(from context: NativeRPCContext) -> any NativeRPCService {
@@ -39,14 +40,12 @@ class NativeRPCEventService: NativeRPCService {
         NotificationCenter.default.removeObserver(self, name: Notification.Name(rawValue: event), object: nil)
     }
 
-    public func post(_ call: NativeRPCMethodCall) {
+    public func post(_ call: NativeRPCMethodCall<RPCMethod>) throws {
         let rpcCallParams = call.params ?? [:]
         guard let name = rpcCallParams["name"] as? String else {
-            call.reject(NativeRPCError.invalidParams("name is missing or invalid"))
-            return
+            throw NativeRPCError.invalidParams("name is missing or invalid")
         }
         let params = rpcCallParams["params"] as? [String: Any]
         NotificationCenter.default.post(name: Notification.Name(rawValue: name), object: nil, userInfo: params)
-        call.resolve()
     }
 }

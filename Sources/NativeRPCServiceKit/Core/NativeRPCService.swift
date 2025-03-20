@@ -13,7 +13,7 @@ public protocol NativeRPCService: AnyObject {
     static func createService(from context: NativeRPCContext) -> any NativeRPCService
     
     associatedtype RPCMethod: RawRepresentable where RPCMethod.RawValue == String
-    func perform(_ method: RPCMethod, with call: NativeRPCMethodCall) throws
+    func perform(with call: NativeRPCMethodCall<RPCMethod>) async throws -> NativeRPCResponseData?
 
     func addEventListener(_ event: String)
     func removeEventListener(_ event: String)

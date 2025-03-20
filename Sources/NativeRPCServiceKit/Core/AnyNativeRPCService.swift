@@ -7,8 +7,8 @@
 
 struct AnyNativeRPCService {
     private let _canHandleMethod: (String) -> Bool
-    private let _perform: (String, NativeRPCMethodCall) throws -> Void
-    
+    private let _perform: (AnyNativeRPCMethodCall) async throws -> NativeRPCResponseData?
+
     // 初始化方法，接受一个具体的 NativeRPCService 实现
     init<T: NativeRPCService>(_ service: T) {
         self._canHandleMethod = { method in
@@ -17,22 +17,22 @@ struct AnyNativeRPCService {
             }
             return false
         }
-        
-        self._perform = { method, call in
-            guard let rpcMethod = T.RPCMethod(rawValue: method) else {
-                call.reject(.methodNotFound)
-                return
+
+        self._perform = { wrapper in
+            guard let method = T.RPCMethod(rawValue: wrapper.method) else {
+                throw NativeRPCError.methodNotFound
             }
-            try service.perform(rpcMethod, with: call)
+            let call = NativeRPCMethodCall(context: wrapper.context, method: method, params: wrapper.params)
+            return try await service.perform(with: call)
         }
     }
-    
+
     // 暴露一个通用的 canHandleMethod 方法
     func canHandleMethod(_ method: String) -> Bool {
         return _canHandleMethod(method)
     }
-    
-    func perform(_ method: String, with call: NativeRPCMethodCall) throws {
-        return try _perform(method, call)
+
+    func perform(with call: AnyNativeRPCMethodCall) async throws -> NativeRPCResponseData? {
+        return try await _perform(call)
     }
 }
