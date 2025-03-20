@@ -10,6 +10,10 @@ import Foundation
 class NativeRPCEventService: NativeRPCService {
     static var name: String = "event"
     
+    required init(from context: NativeRPCContext) {
+        
+    }
+    
     enum RPCMethod: String {
         case post
     }
@@ -20,10 +24,6 @@ class NativeRPCEventService: NativeRPCService {
             try post(call)
         }
         return nil
-    }
-
-    static func createService(from context: NativeRPCContext) -> any NativeRPCService {
-        return NativeRPCEventService()
     }
 
     // MARK: - Event Listener Management
