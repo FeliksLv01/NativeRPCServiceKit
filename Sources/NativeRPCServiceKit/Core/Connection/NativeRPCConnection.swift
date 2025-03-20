@@ -40,14 +40,14 @@ open class NativeRPCConnection: NativeRPCStubDelegate {
                 try await stub?.onReceiveMessage(request)
             } catch {
                 let response = NativeRPCResponse(for: request, error: NativeRPCError.from(error))
-                sendMessage(response.jsonObject)
+                await sendMessage(response.jsonObject)
                 RPCLog.error(
                     "[RPC]: Error %@", response.jsonObject.jsonString ?? "response to json failed")
             }
         }
     }
 
-    public func sendMessage(_ message: [String: Any]) {
+    public func sendMessage(_ message: [String: Any]) async {
         RPCLog.debug("[RPC]: send => %@", message)
     }
 }
