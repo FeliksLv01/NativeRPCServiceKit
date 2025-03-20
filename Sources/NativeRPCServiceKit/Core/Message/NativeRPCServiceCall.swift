@@ -8,24 +8,27 @@
 import Foundation
 
 public typealias NativeRPCResponseData = [String: Any]
-public typealias NativeRPCServiceCallCompletion = (Result<NativeRPCResponseData?, NativeRPCError>) -> Void
 
-public struct NativeRPCMethodCall {
-    private let completion: NativeRPCServiceCallCompletion
-    public let params: [String: Any]?
+public struct NativeRPCMethodCall<Method: RawRepresentable> where Method.RawValue == String {
     public let context: NativeRPCContext
+    public let method: Method
+    public let params: [String: Any]?
 
-    init(context: NativeRPCContext, params: [String: Any]?, completion: @escaping NativeRPCServiceCallCompletion) {
+    init(context: NativeRPCContext, method: Method, params: [String: Any]?) {
         self.context = context
+        self.method = method
         self.params = params
-        self.completion = completion
     }
-    
-    public func resolve(_ data: NativeRPCResponseData? = nil) {
-        completion(.success(data))
-    }
-    
-    public func reject(_ error: NativeRPCError) {
-        completion(.failure(error))
+}
+
+struct AnyNativeRPCMethodCall {
+    public let context: NativeRPCContext
+    public let method: String
+    public let params: [String: Any]?
+
+    public init(context: NativeRPCContext, method: String, params: [String: Any]?) {
+        self.method = method
+        self.params = params
+        self.context = context
     }
 }

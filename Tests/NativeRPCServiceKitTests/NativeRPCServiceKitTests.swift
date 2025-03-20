@@ -2,24 +2,17 @@ import Foundation
 @testable import NativeRPCServiceKit
 import Testing
 
-class NativeRPCAppService {
-    public func demo(_ call: NativeRPCMethodCall) {
-        let rpcCallParams = call.params ?? [:]
-        guard let name = rpcCallParams["name"] as? String else {
-            call.reject(NativeRPCError.invalidParams("name is missing or invalid"))
-            return
+class NativeRPCAppService: NativeRPCService {
+    func perform(with call: NativeRPCMethodCall<RPCMethod>) async throws -> NativeRPCResponseData? {
+        switch call.method {
+        case .test:
+            test(call)
+        case .demo:
+            throw NativeRPCError.methodNotFound
         }
-        print(name)
-        call.resolve(["result": name])
+        return nil
     }
-
-    func test(_ call: NativeRPCMethodCall) {
-        print(call.context.connectionType)
-        call.resolve()
-    }
-}
-
-extension NativeRPCAppService: NativeRPCService {
+    
     static func createService(from context: NativeRPCContext) -> any NativeRPCService {
         return NativeRPCAppService()
     }
@@ -31,14 +24,9 @@ extension NativeRPCAppService: NativeRPCService {
         case test
         case demo
     }
-    
-    func perform(_ method: RPCMethod, with call: NativeRPCMethodCall) throws {
-        switch method {
-        case .test:
-            test(call)
-        default:
-            throw NativeRPCError.methodNotFound
-        }
+
+    func test(_ call: NativeRPCMethodCall<RPCMethod>) {
+        print(call.context.connectionType)
     }
 }
 
