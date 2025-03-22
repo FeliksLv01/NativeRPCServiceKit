@@ -4,29 +4,59 @@ Cross Platform Communication Framework.
 
 ## How To Use
 
-1. Create a NativeRPCService to expose your native code.
+1. Create a NativeRPCService to expose your native code. You can implement method calls and event notifications separately.
 
-````swift
+```swift
 import NativeRPCServiceKit
 
-@NativeRPCService("app")
-class NativeRPCAppService {
-
-    // Simple method with direct parameters and return value
-    @NativeRPCMethod
-    func demo(name: String) -> String {
-        return name
+class NativeRPCAppService: NativeRPCService {
+    // Define service name
+    static var name: String = "app"
+    
+    // Define method types
+    enum Method: String {
+        case info
     }
-
-    // Method using NativeRPCServiceCall for more control
-    @NativeRPCMethodExport
-    func test(_ call: NativeRPCServiceCall) {
-        // Access connection context
-        print(call.context.connectionType)
-        // Resolve the call
-        call.resolve()
+    
+    // Define event types
+    enum Event: String {
+        case enterForeground
+        case enterBackground
+    }
+    
+    required init(from context: NativeRPCContext) {}
+    
+    // Implement method calls
+    func perform(with call: NativeRPCMethodCall<Method>) async throws -> NativeRPCResponseData? {
+        switch call.method {
+        case .info:
+            return [
+                "version": "1.0.0",
+                "osType": "iOS",
+                "osVersion": "17.0"
+            ]
+        }
+    }
+    
+    // Implement event notifications
+    func addEventListener(_ event: Event) {
+        switch event {
+        case .enterBackground:
+            NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] _ in
+                self?.postEvent(.enterBackground)
+            }
+        case .enterForeground:
+            NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { [weak self] _ in
+                self?.postEvent(.enterForeground)
+            }
+        }
+    }
+    
+    func removeEventListener(_ event: Event) {
+        // Remove event listener implementation
     }
 }
+```
 
 2. Register your service and establish connection.
 
@@ -37,20 +67,29 @@ NativeRPCServiceCenter.registerService(NativeRPCAppService.self)
 // Create and start a connection
 let connection = NativeRPCConnection(context: .init(connectionType: .webSocket))
 connection.start()
-````
+```
 
-3. Send messages to invoke methods.
+3. Send messages to invoke methods or listen to events.
 
 ```swift
-// Message format
+// Method call format
 connection.onReceiveMessage([
-    "service": "app",        // Service name defined in @NativeRPCService
-    "method": "demo",        // Method name to call
+    "service": "app",        // Service name defined in NativeRPCService
+    "method": "info",        // Method name to call
     "_meta": [
-        "callbackId": 111    // Callback ID for async operations
+        "callbackId": "111"    // Callback ID for async operations
     ],
     "params": [             // Method parameters
         "name": "FeliksLv"
+    ]
+])
+
+// Event subscription format
+connection.onReceiveMessage([
+    "service": "app",        // Service name defined in NativeRPCService
+    "event": "enterForeground", // Event name to subscribe
+    "_meta": [
+        "callbackId": "222"    // Callback ID for event notifications
     ]
 ])
 ```
@@ -90,21 +129,23 @@ class ViewController: UIViewController {
 In the web page, you can use the `native-rpc-h5` npm package to send messages and invoke methods.
 
 ```ts
-import NativeRPC from '@iwut/native-rpc-h5';
+import NativeRPC from 'iwut-native-rpc-h5';
 
+// Method call example
 type AppInfo = {
-	appId: string;
-	appName: string;
-	appVersion: string;
-	systemVersion: string;
+    appId: string;
+    appName: string;
+    appVersion: string;
+    systemVersion: string;
 };
-
-NativeRPC.call<AppInfo>('app.info').then((res) => {
-	console.log(res.appVersion);
-});
 
 const response = await NativeRPC.call<AppInfo>('app.info');
 console.log(response.appVersion);
+
+// Event subscription example
+NativeRPC.on('app.enterForeground', () => {
+    console.log('App entered foreground');
+});
 ```
 
 See [here](https://github.com/FeliksLv01/native-rpc-h5) for more details.
@@ -114,7 +155,9 @@ See [here](https://github.com/FeliksLv01/native-rpc-h5) for more details.
 Current Features:
 
 -   WKWebView integration support
--   Method decoration with `@NativeRPCMethod` and `@NativeRPCMethodExport`
+-   Separated method calls and event notifications
+    -   Event subscription and notification support
+    -   Bidirectional event dispatch and handling
 -   Type-safe parameter passing and return values
 -   Async operation support with callback IDs
 -   Bidirectional communication support:
