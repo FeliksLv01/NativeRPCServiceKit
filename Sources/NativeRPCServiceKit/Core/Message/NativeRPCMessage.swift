@@ -36,6 +36,10 @@ class NativeRPCMessage: NativeRPCMessageMeta {
         let callbackId = meta?["callbackId"] as? String
         let event = meta?["event"] as? String
         
+        if callbackId == nil && event == nil {
+            return nil
+        }
+        
         self.init(service: service, method: method, callbackId: callbackId, event: event)
     }
 }

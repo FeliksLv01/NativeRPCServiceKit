@@ -30,7 +30,7 @@ open class NativeRPCConnection: NativeRPCStubDelegate {
 
     public func onReceiveMessage(_ message: [String: Any]) {
         guard let request = NativeRPCRequest(from: message) else {
-            RPCLog.error("[RPC]: invalid message: %@", message)
+            RPCLog.error("[RPC]: invalid message format: %@", message)
             return
         }
         RPCLog.debug("[RPC]: receive => %@", message)

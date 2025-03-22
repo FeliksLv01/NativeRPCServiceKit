@@ -14,7 +14,7 @@ protocol NativeRPCStubDelegate: AnyObject {
 /// 消息收发站
 final class NativeRPCStub {
     private weak var context: NativeRPCContext?
-    private var services: [String: any NativeRPCService] = [:]
+    private var services: [String: any NativeRPCDiscoverableService] = [:]
     private var events: [String: Int] = [:]
 
     weak var delegate: NativeRPCStubDelegate?
@@ -24,12 +24,12 @@ final class NativeRPCStub {
         registerNotification()
     }
 
-    func service(named serviceName: String) throws -> any NativeRPCService {
+    func service(named serviceName: String) throws -> any NativeRPCDiscoverableService {
         guard let serviceType = NativeRPCServiceCenter.serviceType(named: serviceName) else {
             throw NativeRPCError.serviceNotFound
         }
         guard let context = context,
-            serviceType.supportedConnectionType.supports(context.connectionType)
+              serviceType.supportedConnectionType.supports(context.connectionType)
         else {
             throw NativeRPCError.connectionTypeNotSupported
         }
@@ -43,18 +43,21 @@ final class NativeRPCStub {
 
     func onReceiveMessage(_ request: NativeRPCRequest) async throws {
         let service = try service(named: request.service)
-
-        guard request.method != "_addEventListener" else {
-            addEventListener(from: request, to: service)
+        if request.method == "_addEventListener" {
+            try addEventListener(from: request, to: service)
+            return
+        }
+        
+        if request.method == "_removeEventListener" {
+            try removeEventListener(from: request, to: service)
+            return
+        }
+        
+        guard let service = service as? (any NativeRPCPerformableService) else {
             return
         }
 
-        guard request.method != "_removeEventListener" else {
-            removeEventListener(from: request, to: service)
-            return
-        }
-
-        let rpcService = AnyNativeRPCService(service)
+        let rpcService = AnyNativeRPCPerformableService(service)
 
         // 普通方法调用
         guard let context = context, rpcService.canHandleMethod(request.method) else {
@@ -62,7 +65,8 @@ final class NativeRPCStub {
         }
 
         let call = AnyNativeRPCMethodCall(
-            context: context, method: request.method, params: request.params)
+            context: context, method: request.method, params: request.params
+        )
         do {
             let data = try await rpcService.perform(with: call)
             let response = NativeRPCResponse(for: request, data: data)
@@ -84,12 +88,12 @@ final class NativeRPCStub {
         ) { [weak self] notification in
             guard let self = self else { return }
             guard let service = notification.object as? (any NativeRPCService),
-                let userInfo = notification.userInfo,
-                let event = userInfo["event"] as? String,
-                let count = events["\(service.name).\(event)"],
-                count > 0,
-                let currentService = services[service.name],
-                currentService === service
+                  let userInfo = notification.userInfo,
+                  let event = userInfo["event"] as? String,
+                  let count = events["\(service.name).\(event)"],
+                  count > 0,
+                  let currentService = services[service.name],
+                  currentService === service
             else {
                 return
             }
@@ -102,33 +106,65 @@ final class NativeRPCStub {
         }
     }
 
-    private func addEventListener(from request: NativeRPCRequest, to service: any NativeRPCService)
-    {
+    private func addEventListener(from request: NativeRPCRequest, to service: any NativeRPCDiscoverableService) throws {
         guard let event = request.event else {
-            sendMessage(.init(for: request, error: .invalidMessage))
+            throw NativeRPCError.invalidMessage
             return
         }
+        
+        let eventHandler: (String) -> Void
+        
+        // 确定事件处理器
+        if request.event == "event" {
+            guard let eventService = service as? NativeRPCEventService else {
+                throw NativeRPCError.serviceNotFound
+            }
+            eventHandler = eventService.addEventListener
+        } else {
+            guard let observableService = service as? (any NativeRPCEventObservableService) else {
+                throw NativeRPCError.serviceNotFound
+            }
+            let wrapper = AnyNativeRPCEventObservableService(observableService)
+            eventHandler = wrapper.addEventListener
+        }
+        
+        // 处理事件注册
         let eventSignature = "\(request.service).\(event)"
         let count = events[eventSignature] ?? 0
         events[eventSignature] = count + 1
+        
         if count == 0 {
-            service.addEventListener(event)
+            eventHandler(event)
         }
+        
         sendMessage(.init(for: request))
     }
 
-    private func removeEventListener(
-        from request: NativeRPCRequest, to service: any NativeRPCService
-    ) {
+    private func removeEventListener(from request: NativeRPCRequest, to service: any NativeRPCDiscoverableService) throws {
         guard let event = request.event else {
-            sendMessage(.init(for: request, error: .invalidMessage))
-            return
+            throw NativeRPCError.invalidMessage
         }
+        
+        let eventHandler: (String) -> Void
+        
+        if request.event == "event" {
+            guard let eventService = service as? NativeRPCEventService else {
+                throw NativeRPCError.serviceNotFound
+            }
+            eventHandler = eventService.removeEventListener
+        } else {
+            guard let observableService = service as? (any NativeRPCEventObservableService) else {
+                throw NativeRPCError.serviceNotFound
+            }
+            let wrapper = AnyNativeRPCEventObservableService(observableService)
+            eventHandler = wrapper.removeEventListener
+        }
+        
         let eventSignature = "\(request.service).\(event)"
         let count = events[eventSignature] ?? 0
         events[eventSignature] = max(0, count - 1)
         if count - 1 == 0 {
-            service.removeEventListener(event)
+            eventHandler(event)
         }
         sendMessage(.init(for: request))
     }

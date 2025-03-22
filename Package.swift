@@ -14,7 +14,6 @@ let package = Package(
             targets: ["NativeRPCServiceKit"]
         )
     ],
-    dependencies: [],
     targets: [
         .target(name: "NativeRPCServiceKit"),
         .testTarget(
