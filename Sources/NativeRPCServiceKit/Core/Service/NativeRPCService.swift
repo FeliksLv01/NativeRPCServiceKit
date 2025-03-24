@@ -84,7 +84,7 @@ extension NativeRPCServiceObservable {
     ///   - event: The event being posted
     ///   - data: Optional data associated with the event
     func postEvent(_ event: Event, data: NativeRPCResponseData? = nil) {
-        let userInfo: [AnyHashable: Any] = data != nil ? ["event": event.rawValue, "data": data!]: ["event": event]
+        let userInfo: [AnyHashable: Any] = data != nil ? ["event": event.rawValue, "data": data!]: ["event": event.rawValue]
         NotificationCenter.nativeRPC.post(name: .serviceDidPostEvent, object: self, userInfo: userInfo)
     }
 }
