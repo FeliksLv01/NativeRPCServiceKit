@@ -9,7 +9,7 @@ Cross Platform Communication Framework.
 ```swift
 import NativeRPCServiceKit
 
-class NativeRPCAppService: NativeRPCService {
+class NativeRPCAppService: NativeRPCService, NativeRPCServiceObservable {
     // Define service name
     static var name: String = "app"
     
