@@ -23,6 +23,7 @@ class NativeRPCResponse: NativeRPCMessage {
             meta["callbackId"] = callbackId
         } else if let event = event {
             meta["event"] = event
+            json["service"] = service
         }
         json["_meta"] = meta
         

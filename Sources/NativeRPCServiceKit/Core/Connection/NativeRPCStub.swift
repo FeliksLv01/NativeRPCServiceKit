@@ -135,8 +135,6 @@ final class NativeRPCStub {
         if count == 0 {
             eventHandler(event)
         }
-        
-        sendMessage(.init(for: request))
     }
 
     private func removeEventListener(from request: NativeRPCRequest, to service: any NativeRPCServiceRepresentable) throws {
@@ -165,7 +163,6 @@ final class NativeRPCStub {
         if count - 1 == 0 {
             eventHandler(event)
         }
-        sendMessage(.init(for: request))
     }
 
     private func sendMessage(_ message: NativeRPCResponse) {
