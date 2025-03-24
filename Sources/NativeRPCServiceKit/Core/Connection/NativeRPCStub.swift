@@ -109,7 +109,6 @@ final class NativeRPCStub {
     private func addEventListener(from request: NativeRPCRequest, to service: any NativeRPCServiceRepresentable) throws {
         guard let event = request.event else {
             throw NativeRPCError.invalidMessage
-            return
         }
         
         let eventHandler: (String) -> Void

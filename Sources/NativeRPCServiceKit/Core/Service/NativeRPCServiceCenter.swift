@@ -25,6 +25,19 @@ public final class NativeRPCServiceCenter {
         return serviceMap[serviceName]
     }
 
+    /// Registers a custom service type with the Native RPC system.
+    /// 
+    /// Use this method to register your custom service implementations that conform to
+    /// the `NativeRPCServiceRepresentable` protocol. Once registered, the service can be
+    /// used to handle RPC calls from clients.
+    /// 
+    /// - Parameter service: The service type to register. Must conform to `NativeRPCServiceRepresentable`
+    /// 
+    /// Example:
+    /// ```swift
+    /// // Register a custom service
+    /// NativeRPCServiceCenter.registerService(MyCustomService.self)
+    /// ```
     public static func registerService<T: NativeRPCServiceRepresentable>(_ service: T.Type) {
         shared.registerService(service)
     }
