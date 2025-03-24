@@ -1,16 +1,16 @@
 //
-//  AnyNativeRPCPerformableService.swift
+//  AnyNativeRPCService.swift
 //  NativeRPCServiceKit
 //
 //  Created by FeliksLv on 2025/3/19.
 //
 
-struct AnyNativeRPCPerformableService {
+struct AnyNativeRPCService {
     private let _canHandleMethod: (String) -> Bool
     private let _perform: (AnyNativeRPCMethodCall) async throws -> NativeRPCResponseData?
 
     // 初始化方法，接受一个具体的 NativeRPCService 实现
-    init<T: NativeRPCPerformableService>(_ service: T) {
+    init<T: NativeRPCService>(_ service: T) {
         self._canHandleMethod = { method in
             if let _ = T.Method(rawValue: method) {
                 return true

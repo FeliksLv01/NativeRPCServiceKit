@@ -1,17 +1,17 @@
 //
-//  AnyNativeRPCEventObservableService.swift
+//  AnyNativeRPCServiceObservable.swift
 //  NativeRPCServiceKit
 //
 //  Created by FeliksLv on 2025/3/22.
 //
 
-struct AnyNativeRPCEventObservableService {
+struct AnyNativeRPCServiceObservable {
     private let _canHandleEvent: (String) -> Bool
     private let _addEventListener: (String) -> Void
     private let _removeEventListener: (String) -> Void
 
-    // 初始化方法，接受一个具体的 NativeRPCEventObservableService 实现
-    init<T: NativeRPCEventObservableService>(_ service: T) {
+    // 初始化方法，接受一个具体的 NativeRPCServiceObservable 实现
+    init<T: NativeRPCServiceObservable>(_ service: T) {
         self._canHandleEvent = { eventName in
             if T.Event(rawValue: eventName) != nil {
                 return true

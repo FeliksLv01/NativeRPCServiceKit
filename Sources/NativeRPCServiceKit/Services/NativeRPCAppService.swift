@@ -12,9 +12,9 @@ import UIKit
 import AppKit
 #endif
 
-class NativeRPCAppService: NativeRPCService {
-    
+class NativeRPCAppService: NativeRPCService, NativeRPCServiceObservable {
     static var name: String = "app"
+    
     enum Method: String {
         case info
     }

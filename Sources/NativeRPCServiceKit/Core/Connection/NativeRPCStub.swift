@@ -14,7 +14,7 @@ protocol NativeRPCStubDelegate: AnyObject {
 /// 消息收发站
 final class NativeRPCStub {
     private weak var context: NativeRPCContext?
-    private var services: [String: any NativeRPCDiscoverableService] = [:]
+    private var services: [String: any NativeRPCServiceRepresentable] = [:]
     private var events: [String: Int] = [:]
 
     weak var delegate: NativeRPCStubDelegate?
@@ -24,7 +24,7 @@ final class NativeRPCStub {
         registerNotification()
     }
 
-    func service(named serviceName: String) throws -> any NativeRPCDiscoverableService {
+    func service(named serviceName: String) throws -> any NativeRPCServiceRepresentable {
         guard let serviceType = NativeRPCServiceCenter.serviceType(named: serviceName) else {
             throw NativeRPCError.serviceNotFound
         }
@@ -53,11 +53,11 @@ final class NativeRPCStub {
             return
         }
         
-        guard let service = service as? (any NativeRPCPerformableService) else {
+        guard let service = service as? (any NativeRPCService) else {
             return
         }
 
-        let rpcService = AnyNativeRPCPerformableService(service)
+        let rpcService = AnyNativeRPCService(service)
 
         // 普通方法调用
         guard let context = context, rpcService.canHandleMethod(request.method) else {
@@ -106,7 +106,7 @@ final class NativeRPCStub {
         }
     }
 
-    private func addEventListener(from request: NativeRPCRequest, to service: any NativeRPCDiscoverableService) throws {
+    private func addEventListener(from request: NativeRPCRequest, to service: any NativeRPCServiceRepresentable) throws {
         guard let event = request.event else {
             throw NativeRPCError.invalidMessage
             return
@@ -121,10 +121,10 @@ final class NativeRPCStub {
             }
             eventHandler = eventService.addEventListener
         } else {
-            guard let observableService = service as? (any NativeRPCEventObservableService) else {
+            guard let observableService = service as? (any NativeRPCServiceObservable) else {
                 throw NativeRPCError.serviceNotFound
             }
-            let wrapper = AnyNativeRPCEventObservableService(observableService)
+            let wrapper = AnyNativeRPCServiceObservable(observableService)
             eventHandler = wrapper.addEventListener
         }
         
@@ -140,7 +140,7 @@ final class NativeRPCStub {
         sendMessage(.init(for: request))
     }
 
-    private func removeEventListener(from request: NativeRPCRequest, to service: any NativeRPCDiscoverableService) throws {
+    private func removeEventListener(from request: NativeRPCRequest, to service: any NativeRPCServiceRepresentable) throws {
         guard let event = request.event else {
             throw NativeRPCError.invalidMessage
         }
@@ -153,10 +153,10 @@ final class NativeRPCStub {
             }
             eventHandler = eventService.removeEventListener
         } else {
-            guard let observableService = service as? (any NativeRPCEventObservableService) else {
+            guard let observableService = service as? (any NativeRPCServiceObservable) else {
                 throw NativeRPCError.serviceNotFound
             }
-            let wrapper = AnyNativeRPCEventObservableService(observableService)
+            let wrapper = AnyNativeRPCServiceObservable(observableService)
             eventHandler = wrapper.removeEventListener
         }
         

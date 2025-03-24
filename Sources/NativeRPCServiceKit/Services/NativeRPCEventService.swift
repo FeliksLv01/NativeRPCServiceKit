@@ -7,7 +7,7 @@
 
 import Foundation
 
-class NativeRPCEventService: NativeRPCPerformableService {
+class NativeRPCEventService: NativeRPCService {
     static var name: String = "event"
     
     required init(from context: NativeRPCContext) {
