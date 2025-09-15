@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name         = "NativeRPCServiceKit"
-  spec.version      = "0.0.14"
+  spec.version      = "0.0.15"
   spec.summary      = "Cross Platform Communication Framework"
   spec.description  = <<-DESC
                       NativeRPCServiceKit is a cross-platform communication framework that enables seamless 
@@ -11,7 +11,7 @@ Pod::Spec.new do |spec|
 
   spec.homepage     = "https://github.com/FeliksLv01/NativeRPCServiceKit"
   spec.license      = { :type => "MIT", :file => "LICENSE" }
-  spec.author       = { "FeliksLv" => "felikslv@example.com" }
+  spec.author       = { "FeliksLv" => "felikslv@163.com" }
 
   spec.ios.deployment_target = "13.0"
   spec.osx.deployment_target = "10.15"

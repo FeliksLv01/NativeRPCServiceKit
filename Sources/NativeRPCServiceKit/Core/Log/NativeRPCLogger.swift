@@ -5,24 +5,51 @@
 //  Created by FeliksLv on 2025/1/12.
 //
 
-import os
+import Foundation
 
-extension OSLog {
-    static let rpcLogger = OSLog(subsystem: "logger.itoken.team.native.rpc", category: "main")
+// MARK: - Log Level
+
+public enum NativeRPCLogLevel: CaseIterable {
+    case debug, info, warning, error
 }
 
-enum RPCLog {
-    static func info(_ message: StaticString, _ args: any CVarArg...) {
-        os_log(.info, log: .rpcLogger, message, args)
+// MARK: - Logger Protocol
+public protocol NativeRPCLoggerProtocol {
+    func log(
+        _ level: NativeRPCLogLevel, _ message: @autoclosure () -> String, file: String, function: String, line: Int)
+}
+
+// MARK: - Log Manager
+typealias NativeRPCLog = NativeRPCLogManager
+
+public enum NativeRPCLogManager {
+    private static var logger: NativeRPCLoggerProtocol?
+
+    public static func setLogger(_ logger: NativeRPCLoggerProtocol) {
+        Self.logger = logger
     }
 
-    static func debug(_ message: @autoclosure () -> StaticString, _ args: any CVarArg...) {
-#if DEBUG
-        os_log(.debug, log: .rpcLogger, message(), args)
-#endif
+    static func debug(
+        _ message: @autoclosure () -> String, file: String = #file, function: String = #function, line: Int = #line
+    ) {
+        logger?.log(.debug, message(), file: file, function: function, line: line)
     }
 
-    static func error(_ message: StaticString, _ args: any CVarArg...) {
-        os_log(.error, log: .rpcLogger, message, args)
+    static func info(
+        _ message: @autoclosure () -> String, file: String = #file, function: String = #function, line: Int = #line
+    ) {
+        logger?.log(.info, message(), file: file, function: function, line: line)
+    }
+
+    static func warning(
+        _ message: @autoclosure () -> String, file: String = #file, function: String = #function, line: Int = #line
+    ) {
+        logger?.log(.warning, message(), file: file, function: function, line: line)
+    }
+
+    static func error(
+        _ message: @autoclosure () -> String, file: String = #file, function: String = #function, line: Int = #line
+    ) {
+        logger?.log(.error, message(), file: file, function: function, line: line)
     }
 }

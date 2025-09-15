@@ -16,7 +16,7 @@ public class NativeRPCWebViewConnection: NativeRPCConnection {
     public override func sendMessage(_ message: [String : Any]) async {
         guard let webView = self.context.rootView as? WKWebView,
               let jsonString = message.jsonString else {
-            RPCLog.error("[RPC]: message send Error: %@", message)
+            NativeRPCLog.error("[RPC]: message send Error: \(message)")
             return
         }
         
@@ -25,7 +25,7 @@ public class NativeRPCWebViewConnection: NativeRPCConnection {
         await MainActor.run {
             webView.evaluateJavaScript(jsCode) { data, error in
                 if let error = error {
-                    RPCLog.error("[RPC]: WebView onReceive Message Error %@", error.localizedDescription)
+                    NativeRPCLog.error("[RPC]: WebView onReceive Message Error \(error.localizedDescription)")
                 }
             }
         }

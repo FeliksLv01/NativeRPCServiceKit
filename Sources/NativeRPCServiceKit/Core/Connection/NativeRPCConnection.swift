@@ -23,24 +23,24 @@ open class NativeRPCConnection: NativeRPCStubDelegate {
     public func start() {
         stub = NativeRPCStub(context: context)
         stub?.delegate = self
-        RPCLog.debug("[RPC]: Connection Start")
+        NativeRPCLog.debug("[RPC]: Connection Start")
     }
 
     /// Closes the RPC connection and cleans up resources
     public func close() {
         stub?.delegate = nil
         stub = nil
-        RPCLog.debug("[RPC]: Connection Close")
+        NativeRPCLog.debug("[RPC]: Connection Close")
     }
 
     /// Handles incoming RPC messages by processing them through the stub
     /// - Parameter message: A dictionary containing the RPC message data
     public func onReceiveMessage(_ message: [String: Any]) {
         guard let request = NativeRPCRequest(from: message) else {
-            RPCLog.error("[RPC]: invalid message format: %@", message)
+            NativeRPCLog.error("[RPC]: invalid message format: \(message)")
             return
         }
-        RPCLog.debug("[RPC]: receive => %@", message)
+        NativeRPCLog.debug("[RPC]: receive => \(message)")
 
         Task {
             do {
@@ -48,8 +48,8 @@ open class NativeRPCConnection: NativeRPCStubDelegate {
             } catch {
                 let response = NativeRPCResponse(for: request, error: NativeRPCError.from(error))
                 await sendMessage(response.jsonObject)
-                RPCLog.error(
-                    "[RPC]: Error %@", response.jsonObject.jsonString ?? "response to json failed")
+                NativeRPCLog.error(
+                    "[RPC]: Error \(response.jsonObject.jsonString ?? "response to json failed")")
             }
         }
     }
@@ -57,6 +57,6 @@ open class NativeRPCConnection: NativeRPCStubDelegate {
     /// Sends an RPC message through the connection
     /// - Parameter message: A dictionary containing the RPC message to be sent
     public func sendMessage(_ message: [String: Any]) async {
-        RPCLog.debug("[RPC]: send => %@", message)
+        NativeRPCLog.debug("[RPC]: send => \(message)")
     }
 }
