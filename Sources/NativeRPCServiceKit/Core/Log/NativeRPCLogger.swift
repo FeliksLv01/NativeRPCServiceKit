@@ -14,7 +14,7 @@ public enum NativeRPCLogLevel: CaseIterable {
 }
 
 // MARK: - Logger Protocol
-public protocol NativeRPCLoggerProtocol {
+public protocol NativeRPCLogger {
     func log(
         _ level: NativeRPCLogLevel, _ message: @autoclosure () -> String, file: String, function: String, line: Int)
 }
@@ -23,9 +23,9 @@ public protocol NativeRPCLoggerProtocol {
 typealias NativeRPCLog = NativeRPCLogManager
 
 public enum NativeRPCLogManager {
-    private static var logger: NativeRPCLoggerProtocol?
+    private static var logger: NativeRPCLogger?
 
-    public static func setLogger(_ logger: NativeRPCLoggerProtocol) {
+    public static func setLogger(_ logger: NativeRPCLogger) {
         Self.logger = logger
     }
 
