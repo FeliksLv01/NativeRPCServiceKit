@@ -23,7 +23,7 @@ public protocol NativeRPCLogger {
 typealias NativeRPCLog = NativeRPCLogManager
 
 public enum NativeRPCLogManager {
-    private static var logger: NativeRPCLogger?
+    private static var logger: NativeRPCLogger = DefaultNativeRPCLogger()
 
     public static func setLogger(_ logger: NativeRPCLogger) {
         Self.logger = logger
@@ -32,24 +32,24 @@ public enum NativeRPCLogManager {
     static func debug(
         _ message: @autoclosure () -> String, file: String = #file, function: String = #function, line: Int = #line
     ) {
-        logger?.log(.debug, message(), file: file, function: function, line: line)
+        logger.log(.debug, message(), file: file, function: function, line: line)
     }
 
     static func info(
         _ message: @autoclosure () -> String, file: String = #file, function: String = #function, line: Int = #line
     ) {
-        logger?.log(.info, message(), file: file, function: function, line: line)
+        logger.log(.info, message(), file: file, function: function, line: line)
     }
 
     static func warning(
         _ message: @autoclosure () -> String, file: String = #file, function: String = #function, line: Int = #line
     ) {
-        logger?.log(.warning, message(), file: file, function: function, line: line)
+        logger.log(.warning, message(), file: file, function: function, line: line)
     }
 
     static func error(
         _ message: @autoclosure () -> String, file: String = #file, function: String = #function, line: Int = #line
     ) {
-        logger?.log(.error, message(), file: file, function: function, line: line)
+        logger.log(.error, message(), file: file, function: function, line: line)
     }
 }
